@@ -6,11 +6,11 @@ from datetime import datetime
 import pandas as pd
 import pygal
 
-ALLOWED_EXTENTIONS = set(['csv'])
+ALLOWED_EXTENSIONS = set(['csv'])
 
 def allowed_file(filename):
     return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENTIONS
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def get_encoding(file_path):
     with open(file_path, 'rb') as f:
@@ -18,18 +18,12 @@ def get_encoding(file_path):
     return result['encoding']
 
 def check_data_integrity(file_path):
-
     encoding = get_encoding(file_path)
-
     data = pd.read_csv(file_path, delimiter=';', encoding=encoding)
-
     expected_columns = ['Title', 'Year', 'Director']
-
     for column in expected_columns:
         if column not in data.columns:
             return False
-
-
     return True
 
 def create_app():
@@ -50,7 +44,9 @@ def create_app():
                 file.save(save_location)
 
                 if check_data_integrity(save_location):
-                    lines = open('input/' + new_filename, 'r').readlines()
+                    encoding = get_encoding('input/' + new_filename)
+                    with open('input/' + new_filename, 'r', encoding=encoding) as f:
+                        lines = f.readlines()
                     for i in lines:
                         x = i.strip().split(';')
                         if (x[6] == 'Sebastian, Beverly'):
@@ -75,5 +71,6 @@ def create_app():
     return app
 
 app = create_app()
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=int(os.getenv('PORT', 3000)))
